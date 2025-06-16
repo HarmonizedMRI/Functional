@@ -27,6 +27,12 @@ to let us know about your needs and interests.
 
 ![HarmonizedMRI](images/hmri.jpg)
 
+To learn more, check out our talk at the ISMRM Reproducible Research Study Group Virtual Meeting:
+Funding for Open Science in MRI, 
+16 June 2025.
+[Slide deck.](https://docs.google.com/presentation/d/1wXAz0ms4QiGtGIa4HfnuZJABRX5qAtt1GV0blcvtPFQ/edit?usp=sharing)
+
+
 ## Getting started
 
 ### For PIs preparing an NIH grant application:
