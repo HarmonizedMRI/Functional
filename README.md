@@ -17,20 +17,24 @@ and sequence execution on real hardware is made possible with sequence-agnostic 
 This ensures transparent and optimally reproducible experimental conditions across sites.
 **Our protocol is fully open-source and available to the broader research community**,
 and we hope that it will become the new standard for future multi-site functional MRI studies.
+
 So far, our protocol has been tested Siemens and GE scanners, but other vendors are adding (or have already added)
 Pulseq support and we encourage you to reach out to your vendor representative for the latest information.
+See also the session 
+[Open Innovation in MR from Vendor & Academia Perspective](https://submissions.mirasmart.com/ISMRM2025/Itinerary/ConferenceMatrixEventDetail.aspx?ses=MIS-01)
+at ISMRM 2025.
 
 **We want to hear from you!**
 Please take a moment to fill out
 [this form](https://docs.google.com/forms/d/e/1FAIpQLSeqZ1c43RXhGUqAE8bWypmY2fRfSjww0_xki_Qv89HJqhZ2qA/viewform)
 to let us know about your needs and interests.
 
-![HarmonizedMRI](images/hmri.jpg)
-
 To learn more, check out our talk at the ISMRM Reproducible Research Study Group Virtual Meeting:
 Funding for Open Science in MRI, 
 16 June 2025.
 [Slide deck.](https://docs.google.com/presentation/d/1wXAz0ms4QiGtGIa4HfnuZJABRX5qAtt1GV0blcvtPFQ/edit?usp=sharing)
+
+![HarmonizedMRI](images/hmri.jpg)
 
 
 ## Getting started
