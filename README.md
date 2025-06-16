@@ -42,7 +42,7 @@ Funding for Open Science in MRI,
 ### For PIs preparing an NIH grant application:
 We encourage you to write Pulseq fMRI into your next grant application!
 We believe that Pulseq is the best technology for achieving transparent and reproducible MRI, 
-providing a solid foundation for the best science; and that grant reviewers will agree.
+and that grant reviewers will agree.
 At [this link](https://drive.google.com/drive/folders/1SaivtmjwFJ_OsU8SBrE1ub1DmhPF6p6W?usp=sharing)
 you will find **NIH grant text templates** to help you get started.
 There you will also find **IRB application example text** that you may find useful
@@ -64,11 +64,9 @@ For more information, see the ./example/ folder in the
 Github repository.
 
 
-## Beta testers wanted!
+## Contact us
 
-If you have an interest in multi-site fMRI or want to prototype new EPI fMRI methods,
-our Pulseq SMS-EPI fMRI protocol may be for you.
-If you'd like to give it a quick try for evaluation purposes, 
+If you'd like to give our Pulseq fMRI protocol a quick try for evaluation purposes, 
 or are already sure you want to use it for your fMRI studies, 
 [contact us by email](mailto:jfnielse@umich.edu) and we will work with you
 to install the Pulseq interpreters and the sequence and reconstruction code.  
