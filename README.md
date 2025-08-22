@@ -49,19 +49,10 @@ There you will also find **IRB application example text** that you may find usef
 when applying for local IRB approval for a study that uses Pulseq MRI protocols.
 
 ### For pulse sequence developers/maintainers:
-If you want to test the acquisition and/or reconstruction protocol:
 
-1. Contact the HarmonizedMRI study team for access to the interpreter for your scanner.
-
-2. Ask the study team for the sequence file 'smsepi.seq', 
-or create your own using the 'writeEPI.m' MATLAB function that we provide.
-The run it on your scanner.
-
-3. Reconstruct the data using slice GRAPPA code that we provide.
-
-For more information, see the ./example/ folder in the 
-[SMS-EPI](https://github.com/HarmonizedMRI/SMS-EPI)
-Github repository.
+If you want to test the acquisition and/or reconstruction protocol,
+you can find a **complete example** in the 'example' folder in the following Github repository:
+https://github.com/HarmonizedMRI/SMS-EPI.
 
 
 ## Contact us
