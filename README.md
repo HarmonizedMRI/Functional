@@ -54,6 +54,12 @@ If you want to test the acquisition and/or reconstruction protocol,
 you can find a **complete example** in the 'example' folder in the following Github repository:
 https://github.com/HarmonizedMRI/SMS-EPI.
 
+### Connect with the Pulseq community
+
+We will hold a regular **virtual Pulseq user group meeting** that is open to everyone, via
+[this registration link](https://umich.zoom.us/meeting/register/DDHjJS_lTtS9ADGvekSKQw).
+
+
 
 ## Contact us
 
