@@ -29,15 +29,28 @@ Please take a moment to fill out
 [this form](https://docs.google.com/forms/d/e/1FAIpQLSeqZ1c43RXhGUqAE8bWypmY2fRfSjww0_xki_Qv89HJqhZ2qA/viewform)
 to let us know about your needs and interests.
 
-To learn more, check out our talk at the ISMRM Reproducible Research Study Group Virtual Meeting:
-Funding for Open Science in MRI, 
-16 June 2025.
-[Slide deck.](https://docs.google.com/presentation/d/1wXAz0ms4QiGtGIa4HfnuZJABRX5qAtt1GV0blcvtPFQ/edit?usp=sharing)
-
 ![HarmonizedMRI](images/hmri.jpg)
 
 
 ## Getting started
+
+
+### Overview
+
+For an overview of this project and Pulseq, see:
+  * Our talk at the ISMRM Reproducible Research Study Group Virtual Meeting:
+    Funding for Open Science in MRI, 
+    16 June 2025
+    [slide deck](https://docs.google.com/presentation/d/1wXAz0ms4QiGtGIa4HfnuZJABRX5qAtt1GV0blcvtPFQ/edit?usp=sharing).
+  * Our [white paper](https://www.medrxiv.org/content/10.1101/2025.08.27.25334579v1) on medRxiv.
+
+
+### SMS-EPI example: from data acquisition to reconstructed images
+
+If you want to test the SMS-EPI acquisition and/or reconstruction protocol,
+you can find a **complete example** in the 'example' folder in the following Github repository:
+https://github.com/HarmonizedMRI/SMS-EPI.
+
 
 ### For PIs preparing an NIH grant application:
 We encourage you to write Pulseq fMRI into your next grant application!
@@ -48,11 +61,6 @@ you will find **NIH grant text templates** to help you get started.
 There you will also find **IRB application example text** that you may find useful
 when applying for local IRB approval for a study that uses Pulseq MRI protocols.
 
-### For pulse sequence developers/maintainers:
-
-If you want to test the acquisition and/or reconstruction protocol,
-you can find a **complete example** in the 'example' folder in the following Github repository:
-https://github.com/HarmonizedMRI/SMS-EPI.
 
 ### Connect with the Pulseq community
 
