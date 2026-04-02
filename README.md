@@ -42,7 +42,7 @@ For an overview of this project and Pulseq, see:
     Funding for Open Science in MRI, 
     16 June 2025
     [slide deck](https://docs.google.com/presentation/d/1wXAz0ms4QiGtGIa4HfnuZJABRX5qAtt1GV0blcvtPFQ/edit?usp=sharing).
-  * Our [white paper](https://www.medrxiv.org/content/10.1101/2025.08.27.25334579v1) on medRxiv.
+  * Our [white paper](https://apertureneuro.org/article/155279-a-vendor-neutral-functional-mri-acquisition-protocol-for-multi-site-studies) in Aperture Neuro.
 
 
 ### SMS-EPI example: from data acquisition to reconstructed images
