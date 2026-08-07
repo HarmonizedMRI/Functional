@@ -33,7 +33,7 @@ buildBIDS/
         │
         ▼
 
-srcBIDS/
+bidsRoot/
 ├── dataset_description.json
 ├── participants.tsv
 │
@@ -134,9 +134,9 @@ The following operations are performed:
 
 ```matlab
 srcRoot = '/path/to/srcRoot';
-srcBIDS = '/path/to/srcBIDS';
+bidsRoot = '/path/to/bidsRoot';
 
-buildBIDS(srcRoot, srcBIDS);
+buildBIDS(srcRoot, bidsRoot);
 ```
 
 `buildBIDS` scans all session directories in `srcRoot` and copies the supported imaging data into the corresponding BIDS session.
