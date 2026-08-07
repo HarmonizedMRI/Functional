@@ -1,14 +1,14 @@
 function info = parseSessionName(sessionName, srcRoot, bidsRoot)
-%PARSESESSIONNAME Parse an internal session identifier into BIDS paths.
+%PARSESESSIONNAME Parse HarmonizedMRI internal session naming.
 %
-% info = parseSessionName(sessionName, srcRoot, bidsRoot)
+% Example:
 %
-% Example input:
-%   sessionName = 'sub00012-umich-750MR-20250115-1'
+%   sub00012-umich-mr750-20250115
 %
-% Example output labels:
-%   info.sub = 'sub-00012'
-%   info.ses = 'ses-sub00012umich750MR202501151'
+% becomes
+%
+%   sub-00012
+%   ses-umichmr75020250115
 
 arguments
     sessionName (1,:) char
@@ -18,32 +18,47 @@ end
 
 tokens = regexp( ...
     sessionName, ...
-    '^sub(\d+)-(.+)$', ...
+    '^sub(\d+)-([A-Za-z0-9]+)-([A-Za-z0-9]+)-(\d{8})$', ...
     'tokens', ...
     'once');
 
 if isempty(tokens)
-    error('parseSessionName:InvalidSessionName', ...
-        'Session name does not match the expected format: %s', ...
+    error( ...
+        'parseSessionName:InvalidSessionName', ...
+        'Invalid session name: %s', ...
         sessionName);
 end
 
 subjectNumber = str2double(tokens{1});
-
-if isnan(subjectNumber)
-    error('parseSessionName:InvalidSubjectNumber', ...
-        'Could not parse subject number from: %s', ...
-        sessionName);
-end
+site          = lower(tokens{2});
+scanner       = lower(tokens{3});
+date          = tokens{4};
 
 info.sessionName = sessionName;
-info.sub = sprintf('sub-%05d', subjectNumber);
 
-sessionValue = regexprep(sessionName, '[^A-Za-z0-9]', '');
-info.ses = ['ses-' sessionValue];
+info.sub = sprintf( ...
+    'sub-%05d', ...
+    subjectNumber);
 
-info.srcDir = fullfile(srcRoot, sessionName);
-info.subjectDir = fullfile(bidsRoot, info.sub);
-info.sessionDir = fullfile(info.subjectDir, info.ses);
+info.ses = sprintf( ...
+    'ses-%s%s%s', ...
+    site, ...
+    scanner, ...
+    date);
 
-end
+info.site = site;
+info.scanner = scanner;
+info.date = date;
+
+info.srcDir = fullfile( ...
+    srcRoot, ...
+    sessionName);
+
+info.subjectDir = fullfile( ...
+    bidsRoot, ...
+    info.sub);
+
+info.sessionDir = fullfile( ...
+    info.subjectDir, ...
+    info.ses);
+
