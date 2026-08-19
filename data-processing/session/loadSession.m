@@ -1,18 +1,22 @@
-function S = loadSession(dataRoot, sessionID)
+function S = loadSession(configRoot, dataRoot, sessionID)
 %LOADSESSION Load metadata and scan locations for one imaging session.
 %
-% S = loadSession(dataRoot, sessionID)
+% S = loadSession(configRoot, dataRoot, sessionID)
 %
 % Inputs:
-%   dataRoot   Directory containing sessions.txt and sessions/
-%   sessionID  Session identifier, e.g.
-%              'sub00004-umich-uhp-20250717-1'
+%   configRoot  Directory containing sessions.txt and sessions/
+%   dataRoot    Root directory containing the actual imaging data
+%   sessionID   Session identifier, e.g.
+%               'sub00004-umich-uhp-20250717-1'
 %
 % Example:
-%   S = loadSession('/path/to/data', ...
+%   configRoot = '/path/to/Functional/data-config';
+%   dataRoot   = '/mnt/storage/HarmonizedMRI/fMRI';
+%
+%   S = loadSession(configRoot, dataRoot, ...
 %       'sub00004-umich-uhp-20250717-1');
 
-sessionsFile = fullfile(dataRoot, 'sessions.txt');
+sessionsFile = fullfile(configRoot, 'sessions.txt');
 
 if ~isfile(sessionsFile)
     error('Sessions file not found: %s', sessionsFile);
@@ -49,28 +53,30 @@ S.vendor  = char(T.vendor(idx));
 
 S.kspace_delay = T.kspace_delay(idx);
 
-% Resolve readout trajectory file relative to dataRoot.
+% Resolve readout trajectory file relative to configRoot.
 S.readout_trajectory_file = fullfile( ...
-    dataRoot, char(T.readout_trajectory_file(idx)));
+    configRoot, char(T.readout_trajectory_file(idx)));
 
-% Session directory.
-S.dir = fullfile(dataRoot, 'sessions', S.id);
+% Directory containing session configuration files.
+S.configdir = fullfile(configRoot, 'sessions', S.id);
 
-if ~isfolder(S.dir)
-    error('Session directory not found: %s', S.dir);
+if ~isfolder(S.configdir)
+    error('Session configuration directory not found: %s', S.configdir);
 end
 
 % Load Pulseq scans, if present.
-filename = fullfile(S.dir, 'pulseq', 'scans.txt');
+filename = fullfile(S.configdir, 'pulseq', 'scans.txt');
 
 if isfile(filename)
-    S.scans.pulseq = readScans(filename, S.vendor);
+    S.scans.pulseq = readScans( ...
+        filename, dataRoot, S.id, S.vendor);
 end
 
 % Load product scans, if present.
-filename = fullfile(S.dir, 'product', 'scans.txt');
+filename = fullfile(S.configdir, 'product', 'scans.txt');
 
 if isfile(filename)
-    S.scans.product = readScans(filename, S.vendor);
+    S.scans.product = readScans( ...
+        filename, dataRoot, S.id, S.vendor);
 end
 
