@@ -48,7 +48,7 @@ for ii = 2:numel(lines)
     end
 end
 
-end
+
 
 
 function name = resolveScan(datadir, name, vendor)
