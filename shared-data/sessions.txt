@@ -1,11 +1,36 @@
 subject     site      scanner     date       session   vendor     kspace_delay    readout_trajectory_file
 
-sub00004    umich     uhp         20240124   1         GE         -1.5            ./readout.mod
-sub00004    umich     mr7         20240202   1         Siemens    -1.5            ./readout.mod
-sub00004    umich     mr750       20241122   1         GE         -1.5            ./readout.mod
-sub00004    umich     mr7         20241211   1         Siemens    -1.5            ./readout.mod
-sub00004    umich     mr7         20250107   1         Siemens    -1.5            ./readout.mod
-sub00004    umich     mr1         20250131   1         Siemens    -1.5            ./readout.mod
-sub00004    umich     uhp         20250717   1         GE         -1.5            ./readout.mod
+sub00004    umich     uhp         20240124   1         GE         -1.5            ../readout_Jan2024.mod
+sub00004    umich     mr7         20240202   1         Siemens    -1.5            ../readout_Jan2024.mod
+sub00004    vatech    prismafit   20241026   1         Siemens    -1.5            ../readout_Jan2024.mod
+sub00004    umich     mr750       20241122   1         GE         -1.5            ../readout_Jan2024.mod
+sub00004    urbana    prisma2     20241208   1         Siemens    -1.5            ../readout_Jan2024.mod
+sub00004    urbana    prisma2     20241209   1         Siemens    -1.5            ../readout_Jan2024.mod
+sub00004    urbana    prisma1     20241209   1         Siemens    -1.5            ../readout_Jan2024.mod
+sub00004    umich     mr7         20241211   1         Siemens    -1.5            ../readout_Jan2024.mod
+sub00004    riken     prisma      20241220   1         Siemens    -1.5            ../readout_Jan2024.mod
+sub00004    umich     mr7         20250107   1         Siemens    -1.5            ../readout_Jan2024.mod
+sub00004    umich     mr1         20250131   1         Siemens    -1.5            ../readout_Jan2024.mod
 
+sub00005    umich     mr750       20241123   1         GE         -1.5            ../readout_Jan2024.mod
+sub00005    umich     mr750       20241123   2         GE         -1.5            ../readout_Jan2024.mod
+sub00005    umich     mr7         20250117   1         Siemens    -1.5            ../readout_Jan2024.mod
 
+sub00006    umich     mr750       20241124   1         GE         -1.5            ../readout_Jan2024.mod
+
+sub00007    umich     mr750       20241124   1         GE         -1.5            ../readout_Jan2024.mod
+sub00007    umich     mr7         20250110   1         Siemens    -1.5            ../readout_Jan2024.mod
+
+sub00009    umich     mr750       20241204   1         GE         -1.5            ../readout_Jan2024.mod
+
+sub00011    umich     mr7         20250108   1         Siemens    -1.5            ../readout_Jan2024.mod
+sub00011    umich     mr750       20250117   1         GE         -1.5            ../readout_Jan2024.mod
+
+sub00012    umich     mr7         20250113   1         Siemens    -1.5            ../readout_Jan2024.mod
+sub00012    umich     mr750       20250115   1         GE         -1.5            ../readout_Jan2024.mod
+
+sub00013    umich     mr7         20250114   1         Siemens    -1.5            ../readout_Jan2024.mod
+sub00013    umich     mr750       20250116   1         GE         -1.5            ../readout_Jan2024.mod
+
+sub00014    umich     uhp         20250627   1         GE         -1.5            ../readout_Jan2024.mod
+sub00004    umich     uhp         20250717   1         GE         -1.5            ../readout_Jan2024.mod
