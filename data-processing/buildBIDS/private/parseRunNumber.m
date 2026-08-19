@@ -1,25 +1,28 @@
-function runNumber = parseRunNumber(filename)
-%PARSERUNNUMBER Extract the run number from task_runN.h5.nii.
+function runNumber = parseRunNumber(filename, prefix)
+%PARSERUNNUMBER Extract run number from PREFIXn.nii.
+%
+% Examples:
+%   parseRunNumber('task_run3.nii', 'task_run') -> 3
+%   parseRunNumber('rest_run2.nii', 'rest_run') -> 2
 
 arguments
     filename (1,:) char
+    prefix   (1,:) char
 end
+
+expression = sprintf( ...
+    '^%s(\\d+)\\.nii$', ...
+    regexptranslate('escape', prefix));
 
 tokens = regexp( ...
     filename, ...
-    '^task_run(\d+)\.h5\.nii$', ...
+    expression, ...
     'tokens', ...
     'once');
 
 if isempty(tokens)
     runNumber = [];
-    return
+else
+    runNumber = str2double(tokens{1});
 end
 
-runNumber = str2double(tokens{1});
-
-if isnan(runNumber)
-    runNumber = [];
-end
-
-end
