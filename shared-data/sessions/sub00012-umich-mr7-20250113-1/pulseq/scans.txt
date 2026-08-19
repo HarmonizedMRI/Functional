@@ -1,0 +1,11 @@
+/mnt/storage/jfnielse/HarmonizedMRI/fMRI/sub00012-umich-mr7-20250113-1/RAW/
+b0  meas_MID00305_FID37582_pulseq_B0.dat
+cal meas_MID00306_FID37583_pulseq_cal.dat
+noise   meas_MID00307_FID37584_pulseq_noise.dat
+2d  meas_MID00308_FID37585_pulseq_2d.dat
+rest    meas_MID00315_FID37592_pulseq_rest.dat
+rest    meas_MID00318_FID37595_pulseq_rest.dat
+task    meas_MID00320_FID37597_pulseq_task_1.dat
+task    meas_MID00323_FID37600_pulseq_task_2.dat
+task    meas_MID00326_FID37603_pulseq_task_3.dat
+task    meas_MID00329_FID37606_pulseq_task_4.dat

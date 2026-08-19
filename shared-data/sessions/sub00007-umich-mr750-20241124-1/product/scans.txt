@@ -1,0 +1,9 @@
+/mnt/storage/jfnielse/HarmonizedMRI/fMRI/sub00007-umich-mr750-20241124-1/dicom/
+t1  s00002
+fmap    s00003 
+rest    s00009 
+rest    s00012 
+task    s00015 
+task    s00018 
+task    s00021 
+task    s00024 

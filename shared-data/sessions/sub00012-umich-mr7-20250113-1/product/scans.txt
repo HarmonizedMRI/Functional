@@ -1,0 +1,8 @@
+/mnt/storage/jfnielse/HarmonizedMRI/fMRI/sub00012-umich-mr7-20250113-1/DICOM/DICOM/00008689/AA52475D/AA3B7EE5/
+t1      0000114E
+rest    000035CD
+rest    00002DBB
+task    00000FA8
+task    000069B0
+task    0000B5BB
+task    0000D0DA

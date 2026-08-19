@@ -1,0 +1,11 @@
+/mnt/storage/jfnielse/HarmonizedMRI/fMRI/sub00012-umich-mr750-20250115-1/Exam15678/
+b0  Series8
+cal Series9
+noise   Series5
+2d  Series6
+rest    Series10
+rest    Series13
+task    Series16
+task    Series19
+task    Series22
+task    Series25

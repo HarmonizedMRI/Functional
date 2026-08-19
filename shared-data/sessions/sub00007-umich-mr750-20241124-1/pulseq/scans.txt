@@ -1,0 +1,11 @@
+/mnt/storage/jfnielse/HarmonizedMRI/fMRI/sub00007-umich-mr750-20241124-1/pulseq/
+b0  Series4
+cal Series5
+noise   Series6
+2d  Series7
+rest    Series8
+rest    Series11
+task    Series14
+task    Series17
+task    Series20
+task    Series23
