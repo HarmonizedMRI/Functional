@@ -14,6 +14,8 @@ end
 
 sessions = findSessions(srcRoot);
 
+writeDatasetDescriptions(bidsRoot);
+
 for iSession = 1:numel(sessions)
 
     sessionName = sessions(iSession).name;
