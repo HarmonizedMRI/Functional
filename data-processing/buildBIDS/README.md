@@ -137,7 +137,7 @@ Product and Pulseq BOLD files are discovered and processed independently.
 ```matlab
 copyBOLD(info, ...
     PhaseEncodingDirection="j-", ...
-    TotalReadoutTime=0.0522);
+    TotalReadoutTime=0.05162);
 ```
 
 The current defaults for the HarmonizedMRI BOLD acquisition are:
@@ -145,7 +145,7 @@ The current defaults for the HarmonizedMRI BOLD acquisition are:
 ```json
 {
   "PhaseEncodingDirection": "j-",
-  "TotalReadoutTime": 0.0522
+  "TotalReadoutTime": 0.05162
 }
 ```
 

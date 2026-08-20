@@ -23,7 +23,7 @@ arguments
     info (1,1) struct
 
     opts.PhaseEncodingDirection (1,1) string = "j-"
-    opts.TotalReadoutTime       (1,1) double {mustBePositive} = 0.0522
+    opts.TotalReadoutTime       (1,1) double {mustBePositive} = 0.05162
 end
 
 validateSessionInfo(info);

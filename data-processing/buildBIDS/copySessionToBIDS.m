@@ -12,5 +12,5 @@ copyFmap(info);
 % Optional inputs apply only to Pulseq scans (needed for B0 distortion correction).
 copyBOLD(info, ...
     PhaseEncodingDirection="j-", ...
-    TotalReadoutTime=0.0522);
+    TotalReadoutTime=0.05162);
 
