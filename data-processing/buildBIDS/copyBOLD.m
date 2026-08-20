@@ -1,4 +1,4 @@
-function copyBOLD(info)
+function copyBOLD(info, opts)
 %COPYBOLD Copy product and Pulseq BOLD images for one session.
 %
 % Source filename conventions:
@@ -7,9 +7,23 @@ function copyBOLD(info)
 %   rest_run*.nii  -> task-rest
 %
 % Product and Pulseq acquisitions are processed independently.
+%
+% Pulseq:
+%   A BIDS JSON sidecar is created using PhaseEncodingDirection and
+%   TotalReadoutTime.
+%
+% Product:
+%   If a source JSON sidecar exists, it is copied unchanged. Values supplied
+%   through opts are ignored and a warning is issued.
+%
+%   If no source JSON exists, a JSON sidecar is created using the supplied
+%   values.
 
 arguments
     info (1,1) struct
+
+    opts.PhaseEncodingDirection (1,1) string = "j-"
+    opts.TotalReadoutTime       (1,1) double {mustBePositive} = 0.0522
 end
 
 validateSessionInfo(info);
@@ -23,6 +37,7 @@ runs = {
     'task_run*.nii', 'task_run', 'vismotor'
     'rest_run*.nii', 'rest_run', 'rest'
 };
+
 
 %% Product BOLD
 
@@ -64,6 +79,31 @@ if isfolder(productDir)
             copyIfPresent( ...
                 sourceFilename, ...
                 destinationFilename);
+
+            %% Product JSON
+
+            sourceJson = replaceNiftiExtension(sourceFilename, '.json');
+            destinationJson = replaceNiftiExtension( ...
+                destinationFilename, '.json');
+
+            if isfile(sourceJson)
+
+                copyIfPresent(sourceJson, destinationJson);
+
+                warning('copyBOLD:ProductJsonExists', ...
+                    ['Product JSON already exists. Supplied ' ...
+                     'PhaseEncodingDirection and TotalReadoutTime ' ...
+                     'were not used:\n  %s'], ...
+                    sourceJson);
+
+            else
+
+                writeBoldJson( ...
+                    destinationJson, ...
+                    opts.PhaseEncodingDirection, ...
+                    opts.TotalReadoutTime);
+
+            end
 
         end
     end
@@ -111,16 +151,18 @@ if isfolder(pulseqDir)
                 'func', ...
                 suffix);
 
-            % Use matching product run only as the NIfTI geometry reference.
+            % Product run is used as the NIfTI geometry reference.
             productReference = fullfile( ...
                 productDir, ...
                 sprintf('%s%d.nii', prefix, runNumber));
 
             if ~isfile(productReference)
+
                 warning('copyBOLD:MissingProductReference', ...
                     ['Cannot fix Pulseq NIfTI header because the matching ' ...
                      'product run was not found:\n  %s'], ...
                     productReference);
+
                 continue
             end
 
@@ -128,6 +170,16 @@ if isfolder(pulseqDir)
                 pulseqSource, ...
                 productReference, ...
                 pulseqDestination);
+
+            %% Pulseq JSON
+
+            pulseqJson = replaceNiftiExtension( ...
+                pulseqDestination, '.json');
+
+            writeBoldJson( ...
+                pulseqJson, ...
+                opts.PhaseEncodingDirection, ...
+                opts.TotalReadoutTime);
 
         end
     end
