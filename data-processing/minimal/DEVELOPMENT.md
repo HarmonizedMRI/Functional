@@ -1,70 +1,16 @@
-# Development notes
+# Development and setup notes
 
-This document describes the development environment used for the lightweight fMRI preprocessing pipeline, how to reproduce the reference **fMRIPrep** workflow, and how to validate each individual processing step using native FSL tools.
+This document contains software installation, testing, and implementation notes for the minimal fMRI preprocessing pipeline.
 
----
+For normal use of the pipeline, see [`README.md`](README.md).
 
-# 1. Development environment
+## Software setup
 
-## Python environment
+### FSL
 
-```bash
-python3 -m venv mypythonenv
-source mypythonenv/bin/activate
-python3 -m pip install fmriprep-docker
-```
+The minimal pipeline uses FSL for B0 distortion correction, motion correction, and EPI-to-T1 registration.
 
-## Install Docker
-
-```bash
-# Remove potentially conflicting apt packages
-sudo apt remove -y docker.io docker-compose docker-compose-v2 \
-    docker-doc podman-docker containerd runc
-
-# Add Docker's official signing key
-sudo apt update
-sudo apt install -y ca-certificates curl
-
-sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
-    -o /etc/apt/keyrings/docker.asc
-sudo chmod a+r /etc/apt/keyrings/docker.asc
-
-# Add Docker's apt repository
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
-  $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" \
-  | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-# Install Docker Engine
-sudo apt update
-sudo apt install -y docker-ce docker-ce-cli containerd.io \
-    docker-buildx-plugin docker-compose-plugin
-```
-
-Test:
-
-```bash
-sudo docker run --rm hello-world
-```
-
-Give your user permission to run Docker without `sudo`:
-
-```bash
-sudo usermod -aG docker "$USER"
-```
-
-Log out and back in, then verify:
-
-```bash
-fmriprep
-```
-
-The first run downloads the required Docker images.
-
----
-
-## Install FSL
+Example installation:
 
 ```bash
 curl -Ls https://fsl.fmrib.ox.ac.uk/fsldownloads/fslinstaller.py \
@@ -73,245 +19,306 @@ curl -Ls https://fsl.fmrib.ox.ac.uk/fsldownloads/fslinstaller.py \
 python3 fslinstaller.py
 ```
 
-Add to `.bashrc`:
+If FSL is installed in `${HOME}/fsl`, configure it with:
 
 ```bash
-export FSLDIR=/home/jon/fsl
+export FSLDIR="${HOME}/fsl"
 . "${FSLDIR}/etc/fslconf/fsl.sh"
 export PATH="${FSLDIR}/share/fsl/bin:$PATH"
 ```
 
-A native FSL installation is useful for testing individual preprocessing steps.
+These lines can be added to `~/.bashrc` if desired.
 
----
+Check:
 
-# 2. Reference workflow using fMRIPrep
+```bash
+command -v fugue
+command -v mcflirt
+command -v flirt
+```
 
-## Validate the BIDS dataset
+The pipeline also requires `FSLOUTPUTTYPE` to be configured by the FSL setup script.
+
+### ANTs
+
+ANTs is required only when:
+
+```bash
+REGISTER_TO_MNI=true
+```
+
+Download a precompiled Linux release of ANTs from the official ANTs GitHub releases page and extract it to a convenient location, for example under:
+
+```text
+${HOME}/ants/
+```
+
+Add the extracted ANTs `bin` directory to `PATH`. For example:
+
+```bash
+export ANTSDIR="${HOME}/ants/ants-2.x.x"
+export PATH="${ANTSDIR}/bin:$PATH"
+```
+
+These lines can be added to `~/.bashrc`.
+
+Check:
+
+```bash
+command -v antsRegistrationSyN.sh
+command -v antsApplyTransforms
+```
+
+Both commands should return paths to the corresponding ANTs executables.
+
+### TemplateFlow
+
+TemplateFlow is used to retrieve the `MNI152NLin2009cAsym` T1w reference image.
+
+Install with:
+
+```bash
+python3 -m pip install templateflow
+```
+
+Check:
+
+```bash
+python3 -c "import templateflow.api; print('TemplateFlow OK')"
+```
+
+TemplateFlow does not need to be installed in a dedicated Python environment as long as it is accessible to the `python3` command used to launch the pipeline.
+
+### jq
+
+The pipeline reads BIDS JSON metadata using `jq`.
+
+On Ubuntu:
+
+```bash
+sudo apt install jq
+```
+
+Check:
+
+```bash
+command -v jq
+```
+
+## BIDS validation
+
+The BIDS validator can be run using Docker:
 
 ```bash
 docker run --rm -ti \
-    -v /home/jon/fmriprep/data:/data:ro \
+    -v "${HOME}/bidsRoot:/data:ro" \
     bids/validator /data
 ```
 
-Ignore warnings:
+To suppress warnings and report errors only:
 
 ```bash
 docker run --rm -ti \
-    -v /home/jon/fmriprep/data:/data:ro \
+    -v "${HOME}/bidsRoot:/data:ro" \
     bids/validator /data \
     --ignoreWarnings
 ```
 
----
+## Testing individual processing stages
 
-## Run fMRIPrep
+The individual scripts are useful for debugging and validating each stage before running the full pipeline.
 
-This configuration:
+### B0 distortion correction
 
-* keeps the data in native space
-* skips FreeSurfer surface reconstruction
-
-```bash
-fmriprep-docker \
-    /home/jon/fmriprep/data \
-    /home/jon/fmriprep/derivatives \
-    participant \
-    --participant-label 00012 \
-    --fs-no-reconall \
-    --fs-license-file "$HOME/.freesurfer/license.txt" \
-    --output-spaces T1w func \
-    --nprocs 8 \
-    --omp-nthreads 4 \
-    --mem-mb 12000 \
-    -w /home/jon/fmriprep/work \
-    2>&1 | tee /home/jon/fmriprep/fmriprep.log
-```
-
----
-
-# 3. Developing and validating the lightweight pipeline
-
-The lightweight pipeline intentionally implements only:
-
-1. B₀ distortion correction
-2. Motion correction
-3. EPI → T1 registration
-
-No slice timing correction, spatial normalization, nuisance regression, temporal filtering, smoothing, or surface reconstruction is performed.
-
-Each stage was first validated independently before being integrated into the complete pipeline.
-
-## Overall processing sequence
-
-```text
-Raw BOLD
-      │
-      ├── B0 distortion correction (FUGUE)
-      │
-      ├── Motion correction (MCFLIRT)
-      │
-      ├── Mean corrected BOLD
-      │
-      └── EPI → T1 registration (FLIRT or optional BBR)
-```
-
-The integrated script is:
-
-```bash
-./run_minimal_fmri_pipeline.sh
-```
-
-It supports two processing modes.
-
-### Sequential mode
-
-```bash
-APPLY_COMBINED_TRANSFORMS=false
-```
-
-```text
-Raw BOLD
-      ↓
-FUGUE
-      ↓
-MCFLIRT
-```
-
-The BOLD data are interpolated twice.
-
-### Combined-transform mode (recommended)
-
-```bash
-APPLY_COMBINED_TRANSFORMS=true
-```
-
-```text
-Estimate B0 shift map
-        ↓
-Provisional FUGUE correction
-        ↓
-Estimate motion (MCFLIRT)
-        ↓
-Combine B0 shift map
-+ volume-specific motion matrices
-        ↓
-Single interpolation of original data
-```
-
-Only one interpolation is applied to the final retained BOLD series.
-
----
-
-## Validate B₀ distortion correction
+Use:
 
 ```bash
 ./run_fugue.sh
 ```
 
-Inspect:
+This tests:
 
-```bash
-fsleyes \
-    /home/jon/fmriprep/fugue_test/sub-00012_space-func_magnitude.nii.gz \
-    /home/jon/fmriprep/fugue_test/sub-00012_task-rest_acq-product_run-01_mean.nii.gz \
-    /home/jon/fmriprep/fugue_test/sub-00012_task-rest_acq-product_run-01_desc-b0corr_mean.nii.gz
+- BOLD mean-image creation
+- field-map resampling into functional space
+- magnitude-image resampling into functional space
+- conversion of the field map from Hz to rad/s
+- FUGUE distortion correction
+- field-map sign
+
+The BOLD JSON sidecar supplies:
+
+```json
+{
+  "PhaseEncodingDirection": "j-",
+  "TotalReadoutTime": 0.0522
+}
 ```
 
-Use the resampled magnitude image as the anatomical reference and toggle between the original and corrected EPI.
-
----
-
-## Validate motion correction
-
-```bash
-./run_mcflirt.sh
-```
-
-Creates
+The effective echo spacing used by FUGUE is:
 
 ```text
-/home/jon/fmriprep/mcflirt_test/sub-00012_task-rest_acq-product_run-01_desc-b0corrMc_bold.nii.gz
+TotalReadoutTime / (N_PE - 1)
 ```
 
-Inspect the motion-corrected mean image together with the B₀-corrected mean image and review the motion parameter files.
+where `N_PE` is the phase-encoding matrix size.
 
----
+For field-map sign testing, the field map can be multiplied by -1 and the two corrected images compared visually.
 
-## Validate EPI → T1 registration
+### Motion correction
+
+Use the standalone MCFLIRT test after confirming the B0 correction.
+
+The intended processing order is:
+
+```text
+B0 correction → motion correction
+```
+
+The full pipeline can optionally combine the final B0 and motion resampling into a single interpolation step.
+
+### EPI-to-T1 registration
+
+Use:
 
 ```bash
 ./run_epi_reg.sh
 ```
 
-The script:
+The default registration is six-degree-of-freedom FLIRT with normalized mutual information.
 
-* defaults to 6-DOF FLIRT;
-* optionally uses boundary-based registration (BBR);
-* estimates the functional-to-T1 transform;
-* optionally estimates a T1-to-functional transform;
-* provides registered images for visual inspection;
-* leaves the full 4D BOLD series in functional space.
+BBR can optionally be tested using BET, FAST, and `epi_reg`.
 
-### BBR option
+For QC, overlay the transformed mean EPI on the original high-resolution T1w image.
 
-BBR uses:
+### T1-to-MNI registration
 
-```text
-motion-corrected BOLD
-        ↓
-mean BOLD
-        ↓
-brain extraction
-        ↓
-white-matter segmentation
-        ↓
-epi_reg
-```
+A standalone MNI test script can be used to validate ANTs and TemplateFlow before enabling MNI normalization in the full pipeline.
 
-Since the EPI has already been corrected with FUGUE, the field map is **not** supplied again during registration.
-
----
-
-# 4. Implementation notes
-
-## Relationship to fMRIPrep
-
-The lightweight pipeline implements only the early preprocessing steps:
-
-* B₀ distortion correction
-* rigid-body motion correction
-* EPI → T1 registration
-
-Compared with fMRIPrep, it intentionally omits:
-
-* slice-timing correction
-* anatomical preprocessing beyond optional BET/FAST
-* surface reconstruction
-* spatial normalization
-* confound estimation
-* nuisance regression
-* temporal filtering
-* spatial smoothing
-
-The goal is a transparent reference implementation suitable for validating vendor-neutral fMRI acquisitions while remaining broadly consistent with the initial stages of the fMRIPrep workflow.
-
-## Combined transforms
-
-The pipeline optionally combines the B₀ distortion warp with the MCFLIRT rigid-body transforms before the final resampling.
-
-Compared with sequential FUGUE → MCFLIRT processing, this reduces interpolation of the retained BOLD data from two resampling steps to one. Although the visual differences are typically small for low-motion datasets, the combined-transform approach is methodologically preferable for production analyses.
-
-## Legacy validation scripts
-
-The individual scripts
+The registration is:
 
 ```text
-run_fugue.sh
-run_mcflirt.sh
-run_epi_reg.sh
+T1w → MNI152NLin2009cAsym
 ```
 
-were developed to validate each processing stage independently before integrating them into the full preprocessing pipeline. They remain useful for debugging individual components.
+using ANTs nonlinear SyN registration.
 
+Check the result by overlaying the transformed T1w image on the TemplateFlow MNI reference. Inspect:
+
+- overall brain outline
+- cortical boundaries
+- ventricles
+- cerebellum
+- inferior brain regions
+
+The full pipeline saves both forward and inverse composite transforms.
+
+## Combined B0 and motion resampling
+
+The recommended full-pipeline setting is:
+
+```bash
+APPLY_COMBINED_TRANSFORMS=true
+```
+
+The workflow is conceptually:
+
+```text
+Raw BOLD
+   │
+   ├─ FUGUE → provisional B0-corrected BOLD
+   │              │
+   │              └─ MCFLIRT → motion matrices
+   │
+   └─ original volumes
+          │
+          └─ combine B0 shift + volume-specific motion transform
+                         │
+                         └─ one final interpolation
+```
+
+This avoids applying separate final interpolation steps for FUGUE and MCFLIRT.
+
+With:
+
+```bash
+APPLY_COMBINED_TRANSFORMS=false
+```
+
+the simpler sequential workflow is used:
+
+```text
+Raw BOLD → FUGUE → MCFLIRT
+```
+
+## fMRIPrep comparison
+
+`run_fmriprep.sh` provides a comparison against fMRIPrep.
+
+The intent is not to reproduce all fMRIPrep processing. Instead, fMRIPrep provides an established reference workflow against which the geometric preprocessing from the minimal pipeline can be evaluated.
+
+The fMRIPrep wrapper can be configured to:
+
+- disable FreeSurfer surface reconstruction
+- output native functional and T1w-space data
+- optionally output `MNI152NLin2009cAsym`
+
+Example output-space construction:
+
+```bash
+OUTPUT_MNI=false
+
+OUTPUT_SPACES=(T1w func)
+
+if ${OUTPUT_MNI}; then
+    OUTPUT_SPACES+=(MNI152NLin2009cAsym)
+fi
+```
+
+and:
+
+```bash
+--output-spaces "${OUTPUT_SPACES[@]}"
+```
+
+## Docker permissions for fMRIPrep
+
+If:
+
+```bash
+docker info
+```
+
+reports:
+
+```text
+permission denied while trying to connect to the docker API at unix:///var/run/docker.sock
+```
+
+the user needs permission to access the Docker daemon.
+
+After adding the user to the Docker group, log out and back in (or otherwise refresh group membership) before retrying:
+
+```bash
+docker info
+```
+
+## FreeSurfer license
+
+fMRIPrep may require a FreeSurfer license even when surface reconstruction is disabled.
+
+The license can be supplied with the fMRIPrep `--fs-license-file` option or through the `FS_LICENSE` environment variable.
+
+## Notes on native-space outputs
+
+The minimal pipeline deliberately keeps the final 4D BOLD data in functional space.
+
+It estimates and saves:
+
+```text
+functional → T1w
+T1w → MNI152NLin2009cAsym
+```
+
+transforms rather than automatically resampling the full time series into anatomical or standard space.
+
+This keeps the main BOLD derivative close to the acquired resolution and permits later functional derivatives, such as activation maps, to be transformed as needed.
