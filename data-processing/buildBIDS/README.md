@@ -4,18 +4,20 @@ Utilities for converting the internal HarmonizedMRI data organization into a BID
 
 ## Purpose
 
-The scripts in this folder build the **primary BIDS dataset** from the internal HarmonizedMRI directory structure.
+The scripts in this folder build the primary BIDS dataset from the internal HarmonizedMRI directory structure.
 
-The primary BIDS dataset contains the canonical imaging data acquired during each scan session, including:
+The primary BIDS dataset currently includes:
 
-* T1-weighted anatomical images
-* BOLD fMRI (product and Pulseq)
-* Canonical B<sub>0</sub> field maps
-* Magnitude images associated with the field maps
+- T1-weighted anatomical images
+- Product and Pulseq BOLD fMRI
+- Canonical B0 field maps
+- Magnitude images associated with the field maps
 
-Selected derived calibration products are also copied into the BIDS `derivatives/` hierarchy. Additional preprocessing pipelines (e.g., the minimal preprocessing pipeline and fMRIPrep) are generated separately.
+Selected derived calibration products, currently BART coil sensitivity maps, are copied under `derivatives/calibration/`.
 
-## Overall project organization
+Additional preprocessing pipelines such as the minimal fMRI pipeline and fMRIPrep are maintained separately under `Functional/data-processing/`.
+
+## Overall organization
 
 ```text
 srcRoot/
@@ -28,23 +30,39 @@ srcRoot/
         │
         ▼
 
-buildBIDS/
+    buildBIDS
 
         │
         ▼
 
 bidsRoot/
 ├── dataset_description.json
-├── participants.tsv
 │
 ├── sub-00012/
 │   └── ses-umichmr75020250115/
 │       ├── anat/
+│       │   ├── sub-00012_ses-umichmr75020250115_T1w.nii.gz
+│       │   └── sub-00012_ses-umichmr75020250115_T1w.json
+│       │
 │       ├── fmap/
+│       │   ├── sub-00012_ses-umichmr75020250115_fieldmap.nii.gz
+│       │   ├── sub-00012_ses-umichmr75020250115_fieldmap.json
+│       │   ├── sub-00012_ses-umichmr75020250115_magnitude.nii.gz
+│       │   └── sub-00012_ses-umichmr75020250115_magnitude.json
+│       │
 │       └── func/
+│           ├── sub-00012_ses-umichmr75020250115_task-vismotor_acq-product_run-01_bold.nii
+│           ├── sub-00012_ses-umichmr75020250115_task-vismotor_acq-product_run-01_bold.json
+│           ├── sub-00012_ses-umichmr75020250115_task-vismotor_acq-pulseq_run-01_bold.nii
+│           ├── sub-00012_ses-umichmr75020250115_task-vismotor_acq-pulseq_run-01_bold.json
+│           ├── sub-00012_ses-umichmr75020250115_task-rest_acq-product_run-01_bold.nii
+│           ├── sub-00012_ses-umichmr75020250115_task-rest_acq-product_run-01_bold.json
+│           ├── sub-00012_ses-umichmr75020250115_task-rest_acq-pulseq_run-01_bold.nii
+│           └── sub-00012_ses-umichmr75020250115_task-rest_acq-pulseq_run-01_bold.json
 │
 └── derivatives/
     └── calibration/
+        ├── dataset_description.json
         └── sub-00012/
             └── ses-umichmr75020250115/
                 └── fmap/
@@ -54,7 +72,13 @@ bidsRoot/
 
 ## Internal source organization
 
-Each scan session is expected to have the following layout:
+Each session is expected to have a directory name of the form
+
+```text
+sub00012-umich-mr750-20250115
+```
+
+and a layout such as:
 
 ```text
 sub00012-umich-mr750-20250115/
@@ -71,43 +95,80 @@ sub00012-umich-mr750-20250115/
 │   └── sens.json
 │
 ├── product/
-│   ├── task_run1.h5.nii
-│   ├── task_run2.h5.nii
-│   ├── task_run3.h5.nii
-│   └── task_run4.h5.nii
+│   ├── task_run1.nii
+│   ├── task_run2.nii
+│   ├── rest_run1.nii
+│   └── ...
 │
 └── pulseq/
-    ├── task_run1.h5.nii
-    ├── task_run2.h5.nii
-    ├── task_run3.h5.nii
-    └── task_run4.h5.nii
+    ├── task_run1.nii
+    ├── task_run2.nii
+    ├── rest_run1.nii
+    └── ...
 ```
+
+The BOLD source filename determines the BIDS task label:
+
+```text
+task_run*.nii  -> task-vismotor
+rest_run*.nii  -> task-rest
+```
+
+Product and Pulseq BOLD files are discovered and processed independently.
 
 ## Current functionality
 
-Currently implemented:
+`buildBIDS.m` currently:
 
-* Copy T1-weighted anatomical images into the primary BIDS dataset.
-* Copy canonical field maps and magnitude images into the primary BIDS dataset.
-* Copy product BOLD images.
-* Copy Pulseq BOLD images.
-* Repair Pulseq NIfTI headers using the corresponding product image.
-* Copy BART ESPIRiT sensitivity maps into `derivatives/calibration`.
-* Convert internal session names into BIDS subject/session labels.
-* Skip existing output files by default.
+- creates dataset-level `dataset_description.json` files;
+- copies T1-weighted anatomical images;
+- copies the canonical field map and associated magnitude image;
+- copies product BOLD runs;
+- processes and copies Pulseq BOLD runs;
+- creates or copies BOLD JSON sidecars;
+- copies BART sensitivity maps into `derivatives/calibration`;
+- converts internal session names into BIDS subject/session labels;
+- skips existing output files by default.
 
-## Pulseq BOLD images
+## BOLD metadata
 
-Pulseq reconstructions are modified before being written to the BIDS dataset.
+`copyBOLD.m` supports the following optional arguments:
 
-The following operations are performed:
+```matlab
+copyBOLD(info, ...
+    PhaseEncodingDirection="j-", ...
+    TotalReadoutTime=0.0522);
+```
 
-* Copy the NIfTI header from the corresponding product image.
-* Preserve the reconstructed image dimensions.
-* Set voxel size to 2.4 × 2.4 × 2.4 mm.
-* Set TR to 0.8 s.
-* Flip the first image dimension to match the product orientation.
-* Scale the image and save as `int16`.
+The current defaults for the HarmonizedMRI BOLD acquisition are:
+
+```json
+{
+  "PhaseEncodingDirection": "j-",
+  "TotalReadoutTime": 0.0522
+}
+```
+
+For Pulseq BOLD runs, a JSON sidecar is generated because the reconstructed NIfTI files generally do not have one.
+
+For product BOLD runs:
+
+- if a source JSON sidecar exists, it is copied unchanged;
+- supplied phase-encoding/readout-time values are not used in that case;
+- if no source JSON exists, a minimal sidecar is generated using the supplied values.
+
+## Pulseq BOLD processing
+
+Pulseq reconstructions are modified before being written to the BIDS dataset:
+
+- use the corresponding product run as the spatial-header reference;
+- preserve the Pulseq image dimensions;
+- set voxel size to 2.4 × 2.4 × 2.4 mm;
+- set TR to 0.8 s;
+- flip the first image dimension to match the product orientation;
+- scale the image and save as `int16`.
+
+The matching product run is required as the geometry reference for this step.
 
 ## Usage
 
@@ -118,19 +179,38 @@ bidsRoot = '/path/to/bidsRoot';
 buildBIDS(srcRoot, bidsRoot);
 ```
 
-`buildBIDS` scans all session directories in `srcRoot` and constructs the corresponding BIDS dataset in `bidsRoot`.
+`buildBIDS` discovers session directories under `srcRoot`, creates the corresponding BIDS subject/session hierarchy, and copies the supported source and calibration data into `bidsRoot`.
+
+## Related processing
+
+Field-map reconstruction is performed separately using the tools in the `HarmonizedMRI/B0shimming` repository. The canonical outputs handed to `buildBIDS` are:
+
+```text
+fmap/
+├── fieldmap.nii.gz
+├── fieldmap.json
+├── magnitude.nii.gz
+├── magnitude.json
+├── sens.mat
+└── sens.json
+```
+
+Functional preprocessing is also separate from `buildBIDS`:
+
+```text
+Functional/data-processing/
+├── buildBIDS/
+├── minimal/
+└── fmriprep/
+```
+
+The minimal pipeline uses the BOLD phase-encoding direction and total readout time for B0 distortion correction.
 
 ## Future work
 
-Additional functionality planned for this package includes:
+Potential future additions include:
 
-* Generation of `participants.tsv`
-* Generation of `dataset_description.json`
-* Copying raw ISMRMRD data into `sourcedata/`
-
-Additional derivative datasets will be generated by separate pipelines and written under `derivatives/`, including:
-
-* additional calibration products (alternative field maps, sensitivity maps, etc.)
-* minimal preprocessing pipeline
-* fMRIPrep
-
+- generation of `participants.tsv`;
+- copying raw ISMRMRD data into `sourcedata/`;
+- additional calibration derivatives such as alternative field-map or sensitivity-map estimates;
+- optional BIDS validation.
