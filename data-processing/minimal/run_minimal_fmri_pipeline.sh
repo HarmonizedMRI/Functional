@@ -87,7 +87,7 @@ BOLD_JSON="${SESSION_DIR}/func/${BOLD_STEM}_bold.json"
 FIELDMAP_HZ="${SESSION_DIR}/fmap/${SUBJECT}_${SESSION}_fieldmap.nii.gz"
 FIELDMAP_MAGNITUDE="${SESSION_DIR}/fmap/${SUBJECT}_${SESSION}_magnitude.nii.gz"
 
-T1="${SESSION_DIR}/anat/${SUBJECT}_${SESSION}_T1w.nii"
+T1="${SESSION_DIR}/anat/${SUBJECT}_${SESSION}_T1w.nii.gz"
 
 # ----------------------------------------------------------------------
 # Public derivative directories
