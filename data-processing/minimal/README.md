@@ -259,6 +259,14 @@ fsleyes \
     <B0-corrected-mean-EPI>
 ```
 
+Example:
+```bash
+fsleyes \
+    fmap/sub-00007_ses-umichmr75020241124_space-func_desc-resampled_magnitude.nii.gz \
+    qc/sub-00007_ses-umichmr75020241124_task-vismotor_acq-product_run-01_desc-raw_mean.nii.gz \
+    qc/sub-00007_ses-umichmr75020241124_task-vismotor_acq-product_run-01_desc-b0corr_mean.nii.gz
+```
+
 ### EPI-to-T1 registration
 
 ```bash
