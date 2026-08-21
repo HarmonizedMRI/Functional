@@ -2,7 +2,6 @@ function writePulseqNifti(pulseqFilename, productFilename, outputFilename, overw
 %WRITEPULSEQNIFTI Apply product geometry to a Pulseq reconstruction.
 %
 % The Pulseq data are:
-%   - flipped along dimension 1;
 %   - globally scaled to maximum absolute magnitude 2^13;
 %   - converted to int16.
 %   - pixelDimensions are set to [2.4 2.4 2.4 0.8]
@@ -51,7 +50,7 @@ validateSpatialDimensions( ...
     pulseqFilename, ...
     productFilename);
 
-data = flip(data, 1);
+%data = flip(data, 1);
 data = scaleToInt16(data, 2^13);
 
 outputInfo = productInfo;

@@ -165,7 +165,6 @@ Pulseq reconstructions are modified before being written to the BIDS dataset:
 - preserve the Pulseq image dimensions;
 - set voxel size to 2.4 × 2.4 × 2.4 mm;
 - set TR to 0.8 s;
-- flip the first image dimension to match the product orientation;
 - scale the image and save as `int16`.
 
 The matching product run is required as the geometry reference for this step.
