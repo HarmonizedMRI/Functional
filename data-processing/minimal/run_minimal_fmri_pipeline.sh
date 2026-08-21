@@ -58,7 +58,7 @@ DERIVATIVES_ROOT="${BIDS_DIR}/derivatives/minimal"
 WORK_ROOT="${HOME}/temp/data-processing/minimal"
 
 # B0 field-map sign convention.
-NEGATE_FIELDMAP=false
+NEGATE_FIELDMAP=true
 
 # Correct fmap magnitude/fieldmap geometry using magnitude -> T1w SyN.
 ALIGN_FMAP_TO_T1=true
