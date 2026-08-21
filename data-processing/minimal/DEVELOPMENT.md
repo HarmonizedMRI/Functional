@@ -322,3 +322,191 @@ T1w → MNI152NLin2009cAsym
 transforms rather than automatically resampling the full time series into anatomical or standard space.
 
 This keeps the main BOLD derivative close to the acquired resolution and permits later functional derivatives, such as activation maps, to be transformed as needed.
+
+## Empirical geometry correction for Pulseq acquisitions
+
+The current minimal pipeline includes two ANTs-based geometry-correction steps for Pulseq-derived images.
+
+These are **empirical image-registration corrections**, not calibrated gradient-nonlinearity (GNL) corrections.
+
+### Field-map magnitude and field map
+
+The Pulseq B0-map acquisition is not currently corrected using a scanner-specific GNL model. The field-map magnitude can therefore show spatial mismatch relative to the T1w image.
+
+The pipeline estimates:
+
+```text
+fmap magnitude → T1w
+```
+
+using ANTs rigid + SyN registration:
+
+```bash
+antsRegistrationSyN.sh \
+    -d 3 \
+    -f <T1-registration-reference> \
+    -m <fmap-magnitude> \
+    -o <prefix> \
+    -t sr \
+    -p f \
+    -n 2
+```
+
+The same transform is then applied to the Hz field map.
+
+Because the expected geometric mismatch is smooth, and full-resolution SyN can use substantial memory, the T1w image is resampled to 3 mm only for **transform estimation**:
+
+```bash
+ResampleImage \
+    3 \
+    "${T1}" \
+    "${T1_REGISTRATION_REFERENCE}" \
+    3x3x3
+```
+
+The field-map magnitude can remain at its native resolution (for example, 2.4 mm). The fixed and moving images do not need matching voxel sizes.
+
+The final transform is applied using the original high-resolution T1w or functional image as the reference grid, so the output resolution is not limited to 3 mm.
+
+The current default is therefore:
+
+```bash
+REGISTRATION_T1_RESOLUTION_MM=3
+```
+
+This is intentional. Reducing it to 2.4 mm is not expected to provide a meaningful benefit for the smooth deformation being estimated and increases memory use.
+
+### Pulseq BOLD geometry
+
+Pulseq and product BOLD acquisitions are designed to have very closely matched EPI susceptibility distortion.
+
+For this reason, the static Pulseq-to-product geometry correction is estimated **before B0 correction**:
+
+```text
+raw Pulseq mean → raw product mean
+```
+
+using rigid + SyN registration.
+
+This preserves the common B0 distortion in both images and asks the nonlinear registration to primarily account for:
+
+- prescription offset;
+- smooth geometry differences associated with missing GNL correction.
+
+The product BOLD run with the matching run number is used as the fixed reference by default.
+
+This assumption should be revisited if Pulseq and product acquisition parameters differ substantially in phase-encoding direction, echo spacing, readout duration, or other parameters that affect EPI distortion.
+
+### Memory use when applying the Pulseq geometry transform
+
+Applying the nonlinear transform to the entire 4D Pulseq BOLD series using:
+
+```bash
+antsApplyTransforms -e 3 ...
+```
+
+can require substantial memory and may be killed by the operating system.
+
+The current implementation therefore:
+
+1. splits the 4D Pulseq BOLD into individual 3D volumes with `fslsplit`;
+2. applies the same static ANTs transform to each volume independently;
+3. merges the corrected volumes with `fslmerge`.
+
+Conceptually:
+
+```text
+4D Pulseq BOLD
+      ↓
+fslsplit
+      ↓
+3D volume 0000 ─┐
+3D volume 0001 ─┼─ antsApplyTransforms
+3D volume 0002 ─┤
+       ...       │
+                 ↓
+             fslmerge
+                 ↓
+geometry-corrected 4D Pulseq BOLD
+```
+
+This substantially reduces peak memory use.
+
+ANTs threading is also limited with:
+
+```bash
+ANTS_THREADS=2
+export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS="${ANTS_THREADS}"
+```
+
+and the registrations use single precision:
+
+```bash
+-p f
+```
+
+to reduce memory requirements.
+
+## Interpolation strategy
+
+For product BOLD, the pipeline can combine B0 distortion and MCFLIRT motion transforms and apply them in one final interpolation:
+
+```bash
+APPLY_COMBINED_TRANSFORMS=true
+```
+
+For Pulseq BOLD, the current implementation performs:
+
+```text
+raw Pulseq BOLD
+      ↓
+static Pulseq→product ANTs geometry correction
+      ↓
+combined B0 + motion correction
+```
+
+Therefore, Pulseq currently undergoes two interpolation stages:
+
+1. static ANTs geometry correction;
+2. combined FUGUE + MCFLIRT resampling.
+
+A future improvement could attempt to compose the ANTs nonlinear geometry transform with the FSL B0/motion transforms so that all geometric corrections are applied in a single final interpolation. This is more complicated because it requires careful conversion/composition of transforms across ANTs and FSL conventions.
+
+## QC for the geometry corrections
+
+### Field-map geometry
+
+Compare:
+
+```text
+T1w
+fmap magnitude transformed to T1w space
+```
+
+For example:
+
+```bash
+fsleyes \
+    <T1w> \
+    <fmap-magnitude-in-T1w-space>
+```
+
+Check whole-brain shape, ventricles, cortex, cerebellum, and inferior brain regions.
+
+### Pulseq geometry
+
+Compare the raw product mean with the geometry-corrected Pulseq mean:
+
+```bash
+fsleyes \
+    <raw-product-mean> \
+    <pulseq-geometry-corrected-mean>
+```
+
+This comparison should be made before evaluating B0 correction, since the static Pulseq geometry transform is intentionally estimated on un-B0-corrected images.
+
+## Interpretation caveat
+
+The ANTs-based nonlinear registrations are practical corrections for geometry mismatch in the current data-processing workflow. They should not be described as true GNL correction.
+
+A calibrated GNL correction based on scanner gradient-coil coefficients would remain preferable when available.
